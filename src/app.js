@@ -8,7 +8,7 @@ const queue = require('./queue');
 
 const app = express();
 
-// View engine
+// View engine:)
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 

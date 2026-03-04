@@ -22,7 +22,7 @@ git commit -m "Initial commit"
 Go to https://github.com/new and create a new repo (can be private).
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/contact-center.git
+git remote add origin https://github.com/starlinkee/contact-center-incremental.git
 git branch -M main
 git push -u origin main
 ```
@@ -114,11 +114,11 @@ You should see: `Hi YOUR_USERNAME/contact-center! You've successfully authentica
 
 ```bash
 cd ~
-git clone git@github.com:YOUR_USERNAME/contact-center.git
-cd contact-center
+git clone https://github.com/starlinkee/contact-center-incremental.git
+cd contact-center-incremental
 ```
 
-> **Note:** Use the `git@github.com:` SSH URL, not `https://`. The HTTPS URL won't use your deploy key.
+> **Note:** If your repo is **private**, use the SSH URL (`git@github.com:starlinkee/contact-center-incremental.git`) and complete Step 4 first. For **public** repos, HTTPS works without any keys.
 
 ### Create your .env file
 
