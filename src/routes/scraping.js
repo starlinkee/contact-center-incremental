@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { addJob } = require('../queue');
+const config = require('../config');
 
 router.get('/', (req, res) => {
   const recentJobs = db.prepare(`
@@ -9,37 +10,46 @@ router.get('/', (req, res) => {
     ORDER BY created_at DESC LIMIT 20
   `).all();
 
-  res.render('scraping', { recentJobs });
+  const msg = req.query.msg || null;
+
+  res.render('scraping', { recentJobs, costPerCall: config.costPerPlacesCall, msg });
 });
 
-// Start a new places scrape
+// Start a new coordinate-based places scrape
 router.post('/start', (req, res) => {
-  const { query, maxResults } = req.body;
-  if (!query) {
+  const { lat, lng, radius, keywords, budget } = req.body;
+
+  const parsedLat = parseFloat(lat);
+  const parsedLng = parseFloat(lng);
+  const parsedRadius = parseFloat(radius);
+  const parsedBudget = parseFloat(budget);
+
+  if (isNaN(parsedLat) || isNaN(parsedLng) || !keywords) {
+    return res.redirect('/scraping?msg=Invalid+coordinates+or+keywords');
+  }
+
+  const keywordList = keywords.split(',').map(k => k.trim()).filter(Boolean);
+  if (keywordList.length === 0) {
     return res.redirect('/scraping');
   }
 
-  addJob('places_scrape', {
-    query,
-    maxResults: parseInt(maxResults, 10) || 20,
-  });
-
-  res.redirect('/scraping');
-});
-
-// Manually trigger email scraping for businesses without emails
-router.post('/scrape-emails', (req, res) => {
-  const businesses = db.prepare(`
-    SELECT id, website FROM businesses
-    WHERE website IS NOT NULL AND email IS NULL AND email_scraped_at IS NULL
-    LIMIT 50
-  `).all();
-
-  for (const biz of businesses) {
-    addJob('email_scrape', { businessId: biz.id, website: biz.website });
+  if (!parsedBudget || parsedBudget <= 0) {
+    return res.redirect('/scraping');
   }
 
-  res.redirect('/scraping');
+  if (!parsedRadius || parsedRadius <= 0 || parsedRadius > 50) {
+    return res.redirect('/scraping?msg=Radius+must+be+between+0.5+and+50+km');
+  }
+
+  addJob('places_scrape', {
+    lat: parsedLat,
+    lng: parsedLng,
+    radiusKm: parsedRadius,
+    keywords: keywordList,
+    budget: parsedBudget,
+  });
+
+  res.redirect('/scraping?msg=Scrape+job+queued');
 });
 
 module.exports = router;

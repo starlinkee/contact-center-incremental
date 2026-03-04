@@ -38,8 +38,9 @@ function processJobs() {
 
     const payload = JSON.parse(job.payload);
     worker(payload, job)
-      .then(() => {
-        db.prepare(`UPDATE jobs SET status = 'done', updated_at = datetime('now') WHERE id = ?`).run(job.id);
+      .then((result) => {
+        const resultJson = result ? JSON.stringify(result) : null;
+        db.prepare(`UPDATE jobs SET status = 'done', result = ?, updated_at = datetime('now') WHERE id = ?`).run(resultJson, job.id);
       })
       .catch((err) => {
         console.error(`Job ${job.id} (${job.type}) failed:`, err.message);

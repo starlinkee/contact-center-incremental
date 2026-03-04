@@ -18,6 +18,7 @@
           <th class="py-3 px-4">Name</th>
           <th class="py-3 px-4">Category</th>
           <th class="py-3 px-4">Email</th>
+          <th class="py-3 px-4">Website</th>
           <th class="py-3 px-4">Phone</th>
           <th class="py-3 px-4">Rating</th>
           <th class="py-3 px-4">Actions</th>
@@ -34,6 +35,13 @@
           <td class="py-2 px-4">
             <% if (biz.email) { %>
               <span class="text-green-400"><%= biz.email %></span>
+            <% } else { %>
+              <span class="text-gray-600">-</span>
+            <% } %>
+          </td>
+          <td class="py-2 px-4">
+            <% if (biz.website) { %>
+              <a href="<%= biz.website %>" target="_blank" class="text-blue-400 hover:text-blue-300 truncate block max-w-[200px]"><%= biz.website.replace(/^https?:\/\//, '') %></a>
             <% } else { %>
               <span class="text-gray-600">-</span>
             <% } %>
@@ -55,7 +63,7 @@
         </tr>
         <% } %>
         <% if (businesses.length === 0) { %>
-        <tr><td colspan="6" class="py-8 text-gray-500 text-center">No businesses yet. Start scraping!</td></tr>
+        <tr><td colspan="7" class="py-8 text-gray-500 text-center">No businesses yet. Start scraping!</td></tr>
         <% } %>
       </tbody>
     </table>

@@ -34,6 +34,7 @@ db.exec(`
     type TEXT,
     payload TEXT,
     status TEXT DEFAULT 'pending',
+    result TEXT,
     attempts INTEGER DEFAULT 0,
     max_attempts INTEGER DEFAULT 3,
     run_at TEXT DEFAULT (datetime('now')),
@@ -91,6 +92,16 @@ db.exec(`
   );
 
   CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, run_at);
+`);
+
+// Migrations for existing databases
+try {
+  db.exec(`ALTER TABLE jobs ADD COLUMN result TEXT`);
+} catch (e) {
+  // Column already exists
+}
+
+db.exec(`
   CREATE INDEX IF NOT EXISTS idx_businesses_email ON businesses(email);
   CREATE INDEX IF NOT EXISTS idx_sent_emails_business ON sent_emails(business_id);
   CREATE INDEX IF NOT EXISTS idx_sent_emails_campaign ON sent_emails(campaign_id);

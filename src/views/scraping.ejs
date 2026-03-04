@@ -3,36 +3,72 @@
 
 <h1 class="text-2xl font-bold mb-6">Scraping</h1>
 
-<!-- New Scrape Form -->
+<% if (msg) { %>
+<div class="bg-blue-900/50 border border-blue-700 text-blue-200 px-4 py-3 rounded mb-6">
+  <%= msg %>
+</div>
+<% } %>
+
+<!-- New Coordinate-Based Scrape Form -->
 <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
   <h2 class="text-lg font-semibold mb-4">New Google Places Search</h2>
-  <form method="POST" action="/scraping/start" class="flex gap-3 items-end">
-    <div class="flex-1">
-      <label class="block text-sm text-gray-400 mb-1">Search Query</label>
-      <input type="text" name="query" placeholder="e.g. restaurants in Berlin"
+  <form method="POST" action="/scraping/start" class="space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Latitude</label>
+        <input type="number" name="lat" id="latInput" placeholder="e.g. 52.5200" step="any"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" required />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Longitude</label>
+        <input type="number" name="lng" id="lngInput" placeholder="e.g. 13.4050" step="any"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" required />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Radius (km)</label>
+        <input type="number" name="radius" id="radiusInput" value="10" min="0.5" max="50" step="0.5"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" required />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Budget ($)</label>
+        <input type="number" name="budget" id="budgetInput" value="10" min="0.01" step="0.01"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" required />
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm text-gray-400 mb-1">Keywords <span class="text-gray-500">(comma-separated)</span></label>
+      <input type="text" name="keywords" placeholder="e.g. restaurants, cafes, bars"
         class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" required />
     </div>
-    <div class="w-32">
-      <label class="block text-sm text-gray-400 mb-1">Max Results</label>
-      <input type="number" name="maxResults" value="20" min="1" max="60"
-        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+
+    <!-- Live cost estimator -->
+    <div id="costEstimate" class="bg-gray-800/50 border border-gray-700/50 rounded px-4 py-3 text-sm text-gray-300">
+      <span id="estimateText">~117 API calls &middot; Est. max ~7,000 results</span>
     </div>
+
     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition">
       Start Scraping
     </button>
   </form>
 </div>
 
-<!-- Bulk Email Scrape -->
-<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-  <h2 class="text-lg font-semibold mb-4">Email Scraping</h2>
-  <p class="text-sm text-gray-400 mb-3">Scrape emails from businesses that have a website but no email yet.</p>
-  <form method="POST" action="/scraping/scrape-emails">
-    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transition">
-      Scrape Emails (up to 50)
-    </button>
-  </form>
-</div>
+<script>
+(function() {
+  const COST_PER_CALL = <%= costPerCall %>;
+  const budgetInput = document.getElementById('budgetInput');
+  const estimateText = document.getElementById('estimateText');
+
+  function updateEstimate() {
+    const budget = parseFloat(budgetInput.value) || 0;
+    const maxCalls = Math.floor(budget / COST_PER_CALL);
+    // Each keyword uses up to 3 search calls (60 results max), then 1 detail call per result
+    estimateText.textContent = `~${maxCalls.toLocaleString()} API calls available (search + detail calls)`;
+  }
+
+  budgetInput.addEventListener('input', updateEstimate);
+  updateEstimate();
+})();
+</script>
 
 <!-- Recent Jobs -->
 <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
@@ -43,16 +79,20 @@
         <tr class="text-left text-gray-400 border-b border-gray-800">
           <th class="py-2 pr-4">ID</th>
           <th class="py-2 pr-4">Type</th>
+          <th class="py-2 pr-4">Keywords</th>
           <th class="py-2 pr-4">Status</th>
-          <th class="py-2 pr-4">Attempts</th>
+          <th class="py-2 pr-4">Results</th>
           <th class="py-2 pr-4">Created</th>
         </tr>
       </thead>
       <tbody>
         <% for (const job of recentJobs) { %>
+        <% const payload = JSON.parse(job.payload || '{}'); %>
+        <% const result = job.result ? JSON.parse(job.result) : null; %>
         <tr class="border-b border-gray-800/50">
           <td class="py-2 pr-4"><%= job.id %></td>
           <td class="py-2 pr-4"><%= job.type %></td>
+          <td class="py-2 pr-4 text-gray-300 max-w-48 truncate"><%= payload.keywords ? payload.keywords.join(', ') : (payload.query || '—') %></td>
           <td class="py-2 pr-4">
             <span class="px-2 py-0.5 rounded text-xs
               <% if (job.status === 'pending') { %>bg-yellow-900/50 text-yellow-300<% } %>
@@ -61,12 +101,21 @@
               <% if (job.status === 'failed') { %>bg-red-900/50 text-red-300<% } %>
             "><%= job.status %></span>
           </td>
-          <td class="py-2 pr-4"><%= job.attempts %>/<%= job.max_attempts %></td>
+          <td class="py-2 pr-4">
+            <% if (result) { %>
+              <span class="text-green-300"><%= result.businessesFound %> businesses</span>
+              <% if (result.emailsQueued) { %><span class="text-gray-500"> · <%= result.emailsQueued %> websites</span><% } %>
+            <% } else if (job.status === 'running') { %>
+              <span class="text-blue-300 text-xs">in progress…</span>
+            <% } else { %>
+              <span class="text-gray-500">—</span>
+            <% } %>
+          </td>
           <td class="py-2 pr-4 text-gray-400"><%= job.created_at %></td>
         </tr>
         <% } %>
         <% if (recentJobs.length === 0) { %>
-        <tr><td colspan="5" class="py-4 text-gray-500 text-center">No jobs yet</td></tr>
+        <tr><td colspan="6" class="py-4 text-gray-500 text-center">No jobs yet</td></tr>
         <% } %>
       </tbody>
     </table>
