@@ -1,0 +1,77 @@
+<% const title = 'Businesses' %>
+<%- include('header', { title }) %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">Businesses (<%= total %>)</h1>
+  <div class="flex gap-2">
+    <a href="/businesses?filter=all" class="px-3 py-1 rounded text-sm <%= filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white' %>">All</a>
+    <a href="/businesses?filter=with_email" class="px-3 py-1 rounded text-sm <%= filter === 'with_email' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white' %>">With Email</a>
+    <a href="/businesses?filter=no_email" class="px-3 py-1 rounded text-sm <%= filter === 'no_email' ? 'bg-yellow-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white' %>">No Email</a>
+  </div>
+</div>
+
+<div class="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-400 border-b border-gray-800">
+          <th class="py-3 px-4">Name</th>
+          <th class="py-3 px-4">Category</th>
+          <th class="py-3 px-4">Email</th>
+          <th class="py-3 px-4">Phone</th>
+          <th class="py-3 px-4">Rating</th>
+          <th class="py-3 px-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const biz of businesses) { %>
+        <tr class="border-b border-gray-800/50 hover:bg-gray-800/30">
+          <td class="py-2 px-4">
+            <div class="font-medium text-white"><%= biz.name %></div>
+            <div class="text-xs text-gray-500"><%= biz.address %></div>
+          </td>
+          <td class="py-2 px-4 text-gray-400"><%= (biz.category || '').split(',')[0] %></td>
+          <td class="py-2 px-4">
+            <% if (biz.email) { %>
+              <span class="text-green-400"><%= biz.email %></span>
+            <% } else { %>
+              <span class="text-gray-600">-</span>
+            <% } %>
+          </td>
+          <td class="py-2 px-4 text-gray-400"><%= biz.phone || '-' %></td>
+          <td class="py-2 px-4 text-yellow-400"><%= biz.rating || '-' %></td>
+          <td class="py-2 px-4">
+            <div class="flex gap-2">
+              <% if (biz.website && !biz.email) { %>
+              <form method="POST" action="/businesses/<%= biz.id %>/scrape-email">
+                <button type="submit" class="text-xs bg-green-700 hover:bg-green-600 px-2 py-1 rounded">Scrape Email</button>
+              </form>
+              <% } %>
+              <form method="POST" action="/businesses/<%= biz.id %>/delete" onsubmit="return confirm('Delete this business?')">
+                <button type="submit" class="text-xs bg-red-900 hover:bg-red-700 px-2 py-1 rounded">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+        <% if (businesses.length === 0) { %>
+        <tr><td colspan="6" class="py-8 text-gray-500 text-center">No businesses yet. Start scraping!</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if (totalPages > 1) { %>
+<div class="flex justify-center gap-2 mt-6">
+  <% for (let p = 1; p <= totalPages; p++) { %>
+    <a href="/businesses?page=<%= p %>&filter=<%= filter %>"
+      class="px-3 py-1 rounded text-sm <%= p === page ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white' %>">
+      <%= p %>
+    </a>
+  <% } %>
+</div>
+<% } %>
+
+<%- include('footer') %>

@@ -1,0 +1,123 @@
+<% const title = 'Analytics' %>
+<%- include('header', { title }) %>
+
+<h1 class="text-2xl font-bold mb-6">Analytics</h1>
+
+<!-- Campaign Stats -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold mb-4">Campaign Performance</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-400 border-b border-gray-800">
+          <th class="py-2 pr-4">Campaign</th>
+          <th class="py-2 pr-4">Sent</th>
+          <th class="py-2 pr-4">Opened</th>
+          <th class="py-2 pr-4">Open Rate</th>
+          <th class="py-2 pr-4">Replied</th>
+          <th class="py-2 pr-4">Reply Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const cs of campaignStats) { %>
+        <tr class="border-b border-gray-800/50">
+          <td class="py-2 pr-4 font-medium text-white"><%= cs.name %></td>
+          <td class="py-2 pr-4"><%= cs.total_sent %></td>
+          <td class="py-2 pr-4 text-green-400"><%= cs.total_opened %></td>
+          <td class="py-2 pr-4 text-yellow-400"><%= cs.openRate %>%</td>
+          <td class="py-2 pr-4 text-blue-400"><%= cs.total_replied %></td>
+          <td class="py-2 pr-4 text-blue-400"><%= cs.replyRate %>%</td>
+        </tr>
+        <% } %>
+        <% if (campaignStats.length === 0) { %>
+        <tr><td colspan="6" class="py-4 text-gray-500 text-center">No campaigns yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Daily Usage -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold mb-4">Daily Usage (Last 7 Days)</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-400 border-b border-gray-800">
+          <th class="py-2 pr-4">Date</th>
+          <th class="py-2 pr-4">API Calls</th>
+          <th class="py-2 pr-4">API Cost</th>
+          <th class="py-2 pr-4">Emails Sent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const d of dailyStats) { %>
+        <tr class="border-b border-gray-800/50">
+          <td class="py-2 pr-4"><%= d.date %></td>
+          <td class="py-2 pr-4"><%= d.places_api_calls %></td>
+          <td class="py-2 pr-4">$<%= d.places_api_cost.toFixed(2) %></td>
+          <td class="py-2 pr-4"><%= d.emails_sent %></td>
+        </tr>
+        <% } %>
+        <% if (dailyStats.length === 0) { %>
+        <tr><td colspan="4" class="py-4 text-gray-500 text-center">No usage data yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Recent Sent Emails -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+  <h2 class="text-lg font-semibold mb-4">Recent Sent Emails</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-400 border-b border-gray-800">
+          <th class="py-2 pr-4">Business</th>
+          <th class="py-2 pr-4">To</th>
+          <th class="py-2 pr-4">Campaign</th>
+          <th class="py-2 pr-4">Seq</th>
+          <th class="py-2 pr-4">Opened</th>
+          <th class="py-2 pr-4">Replied</th>
+          <th class="py-2 pr-4">Sent At</th>
+          <th class="py-2 pr-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const e of recentEmails) { %>
+        <tr class="border-b border-gray-800/50">
+          <td class="py-2 pr-4"><%= e.business_name %></td>
+          <td class="py-2 pr-4 text-gray-400"><%= e.business_email %></td>
+          <td class="py-2 pr-4"><%= e.campaign_name %></td>
+          <td class="py-2 pr-4">#<%= e.sequence_num %></td>
+          <td class="py-2 pr-4">
+            <% if (e.opened) { %>
+              <span class="text-green-400">Yes</span>
+              <div class="text-xs text-gray-500"><%= e.opened_at %></div>
+            <% } else { %>
+              <span class="text-gray-600">No</span>
+            <% } %>
+          </td>
+          <td class="py-2 pr-4">
+            <% if (e.replied) { %>
+              <span class="text-blue-400">Yes</span>
+            <% } else { %>
+              <form method="POST" action="/analytics/reply/<%= e.id %>">
+                <button type="submit" class="text-xs bg-blue-900 hover:bg-blue-700 px-2 py-1 rounded">Mark Reply</button>
+              </form>
+            <% } %>
+          </td>
+          <td class="py-2 pr-4 text-gray-400"><%= e.sent_at %></td>
+          <td class="py-2 pr-4"></td>
+        </tr>
+        <% } %>
+        <% if (recentEmails.length === 0) { %>
+        <tr><td colspan="8" class="py-4 text-gray-500 text-center">No emails sent yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('footer') %>

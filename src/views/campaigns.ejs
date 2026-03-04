@@ -1,0 +1,145 @@
+<% const title = 'Campaigns' %>
+<%- include('header', { title }) %>
+
+<h1 class="text-2xl font-bold mb-6">Campaigns</h1>
+
+<!-- Create Campaign -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold mb-4">Create Campaign</h2>
+  <form method="POST" action="/campaigns/create" class="space-y-4">
+    <div>
+      <label class="block text-sm text-gray-400 mb-1">Campaign Name</label>
+      <input type="text" name="name" required
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Email 1 - Subject</label>
+        <input type="text" name="subject_1" required placeholder="Use {{name}} for business name"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Email 2 - Subject (optional follow-up)</label>
+        <input type="text" name="subject_2" placeholder="Re: {{name}}"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Email 1 - Body (HTML)</label>
+        <textarea name="body_1" rows="6" required placeholder="Hi {{name}},&#10;&#10;Your HTML email body here..."
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Email 2 - Body (optional)</label>
+        <textarea name="body_2" rows="6" placeholder="Just following up..."
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono text-sm"></textarea>
+      </div>
+    </div>
+    <div class="w-48">
+      <label class="block text-sm text-gray-400 mb-1">Follow-up after (days)</label>
+      <input type="number" name="followup_days" value="3" min="1" max="30"
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+    </div>
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition">
+      Create Campaign
+    </button>
+  </form>
+</div>
+
+<!-- Existing Campaigns -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold mb-4">Campaigns</h2>
+  <% for (const c of campaigns) { %>
+  <div class="border border-gray-800 rounded-lg p-4 mb-3 flex items-center justify-between">
+    <div>
+      <div class="font-medium text-white"><%= c.name %></div>
+      <div class="text-sm text-gray-400">Subject: <%= c.subject_1 %></div>
+      <div class="text-xs text-gray-500 mt-1">
+        <span class="<%= c.active ? 'text-green-400' : 'text-red-400' %>"><%= c.active ? 'Active' : 'Inactive' %></span>
+        &middot; Follow-up: <%= c.followup_days %> days
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <form method="POST" action="/campaigns/<%= c.id %>/send" class="flex gap-2">
+        <select name="filter" class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white">
+          <option value="unsent">Unsent only</option>
+          <option value="all">All with email</option>
+        </select>
+        <button type="submit" class="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-white">Send</button>
+      </form>
+      <form method="POST" action="/campaigns/<%= c.id %>/toggle">
+        <button type="submit" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-white">
+          <%= c.active ? 'Pause' : 'Activate' %>
+        </button>
+      </form>
+      <form method="POST" action="/campaigns/<%= c.id %>/delete" onsubmit="return confirm('Delete this campaign?')">
+        <button type="submit" class="text-sm bg-red-900 hover:bg-red-700 px-3 py-1 rounded text-white">Delete</button>
+      </form>
+    </div>
+  </div>
+  <% } %>
+  <% if (campaigns.length === 0) { %>
+    <p class="text-gray-500 text-sm">No campaigns yet.</p>
+  <% } %>
+</div>
+
+<!-- Inboxes -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+  <h2 class="text-lg font-semibold mb-4">Sending Inboxes</h2>
+
+  <form method="POST" action="/campaigns/inboxes/add" class="flex gap-3 items-end mb-4">
+    <div class="flex-1">
+      <label class="block text-sm text-gray-400 mb-1">Email Address</label>
+      <input type="email" name="email" required
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+    </div>
+    <div class="flex-1">
+      <label class="block text-sm text-gray-400 mb-1">SendGrid API Key (optional, uses default)</label>
+      <input type="text" name="sendgrid_api_key"
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+    </div>
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition">Add</button>
+  </form>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-400 border-b border-gray-800">
+          <th class="py-2 pr-4">Email</th>
+          <th class="py-2 pr-4">Level</th>
+          <th class="py-2 pr-4">Sent Today</th>
+          <th class="py-2 pr-4">Daily Limit</th>
+          <th class="py-2 pr-4">Status</th>
+          <th class="py-2 pr-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const inbox of inboxes) { %>
+        <tr class="border-b border-gray-800/50">
+          <td class="py-2 pr-4"><%= inbox.email %></td>
+          <td class="py-2 pr-4"><%= inbox.warmup_level %></td>
+          <td class="py-2 pr-4"><%= inbox.sent_today %></td>
+          <td class="py-2 pr-4"><%= inbox.daily_limit %></td>
+          <td class="py-2 pr-4">
+            <span class="<%= inbox.active ? 'text-green-400' : 'text-red-400' %>"><%= inbox.active ? 'Active' : 'Paused' %></span>
+          </td>
+          <td class="py-2 pr-4 flex gap-2">
+            <form method="POST" action="/campaigns/inboxes/<%= inbox.id %>/toggle">
+              <button type="submit" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"><%= inbox.active ? 'Pause' : 'Activate' %></button>
+            </form>
+            <form method="POST" action="/campaigns/inboxes/<%= inbox.id %>/delete" onsubmit="return confirm('Delete inbox?')">
+              <button type="submit" class="text-xs bg-red-900 hover:bg-red-700 px-2 py-1 rounded">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% } %>
+        <% if (inboxes.length === 0) { %>
+        <tr><td colspan="6" class="py-4 text-gray-500 text-center">No inboxes configured.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('footer') %>

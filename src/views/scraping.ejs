@@ -1,0 +1,76 @@
+<% const title = 'Scraping' %>
+<%- include('header', { title }) %>
+
+<h1 class="text-2xl font-bold mb-6">Scraping</h1>
+
+<!-- New Scrape Form -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold mb-4">New Google Places Search</h2>
+  <form method="POST" action="/scraping/start" class="flex gap-3 items-end">
+    <div class="flex-1">
+      <label class="block text-sm text-gray-400 mb-1">Search Query</label>
+      <input type="text" name="query" placeholder="e.g. restaurants in Berlin"
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" required />
+    </div>
+    <div class="w-32">
+      <label class="block text-sm text-gray-400 mb-1">Max Results</label>
+      <input type="number" name="maxResults" value="20" min="1" max="60"
+        class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+    </div>
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition">
+      Start Scraping
+    </button>
+  </form>
+</div>
+
+<!-- Bulk Email Scrape -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold mb-4">Email Scraping</h2>
+  <p class="text-sm text-gray-400 mb-3">Scrape emails from businesses that have a website but no email yet.</p>
+  <form method="POST" action="/scraping/scrape-emails">
+    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transition">
+      Scrape Emails (up to 50)
+    </button>
+  </form>
+</div>
+
+<!-- Recent Jobs -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+  <h2 class="text-lg font-semibold mb-4">Recent Jobs</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-gray-400 border-b border-gray-800">
+          <th class="py-2 pr-4">ID</th>
+          <th class="py-2 pr-4">Type</th>
+          <th class="py-2 pr-4">Status</th>
+          <th class="py-2 pr-4">Attempts</th>
+          <th class="py-2 pr-4">Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const job of recentJobs) { %>
+        <tr class="border-b border-gray-800/50">
+          <td class="py-2 pr-4"><%= job.id %></td>
+          <td class="py-2 pr-4"><%= job.type %></td>
+          <td class="py-2 pr-4">
+            <span class="px-2 py-0.5 rounded text-xs
+              <% if (job.status === 'pending') { %>bg-yellow-900/50 text-yellow-300<% } %>
+              <% if (job.status === 'running') { %>bg-blue-900/50 text-blue-300<% } %>
+              <% if (job.status === 'done') { %>bg-green-900/50 text-green-300<% } %>
+              <% if (job.status === 'failed') { %>bg-red-900/50 text-red-300<% } %>
+            "><%= job.status %></span>
+          </td>
+          <td class="py-2 pr-4"><%= job.attempts %>/<%= job.max_attempts %></td>
+          <td class="py-2 pr-4 text-gray-400"><%= job.created_at %></td>
+        </tr>
+        <% } %>
+        <% if (recentJobs.length === 0) { %>
+        <tr><td colspan="5" class="py-4 text-gray-500 text-center">No jobs yet</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('footer') %>
