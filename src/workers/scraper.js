@@ -54,6 +54,8 @@ async function coordScrape(payload) {
       } catch (err) {
         console.error(`[Scrape] Failed to get details for ${place.name}:`, err.message);
       }
+    } else {
+      console.warn(`[Scrape] Budget exhausted, skipping details for "${place.name}" (no website will be fetched)`);
     }
 
     insertBiz.run(place.place_id, place.name, place.address, place.category, place.rating, phone, website);

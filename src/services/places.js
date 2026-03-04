@@ -158,7 +158,14 @@ async function getPlaceDetails(placeId) {
   const response = await axios.get('https://maps.googleapis.com/maps/api/place/details/json', { params });
   trackApiCall();
 
-  const result = response.data.result || {};
+  const data = response.data;
+  if (data.status !== 'OK') {
+    console.warn(`[PlaceDetails] status=${data.status} for place_id=${placeId}: ${data.error_message || ''}`);
+    return { phone: null, website: null };
+  }
+
+  const result = data.result || {};
+  console.log(`[PlaceDetails] ${placeId} → phone=${result.formatted_phone_number || 'none'}, website=${result.website || 'none'}`);
   return {
     phone: result.formatted_phone_number || null,
     website: result.website || null,
